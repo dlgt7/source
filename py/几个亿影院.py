@@ -1,25 +1,30 @@
-# coding = utf-8
-# !/usr/bin/python
+"""
+
+作者 丢丢喵 🚓 内容均从互联网收集而来 仅供交流学习使用 版权归原创者所有 如侵犯了您的权益 请通知作者 将及时删除侵权内容
+                    ====================Diudiumiao====================
 
 """
 
-作者 丢丢推荐 🚓 内容均从互联网收集而来 仅供交流学习使用 版权归原创者所有 如侵犯了您的权益 请通知作者 将及时删除侵权内容
-                    ====================diudiu====================
-
-"""
-
-import requests
-from bs4 import BeautifulSoup
-import re
+from Crypto.Util.Padding import unpad
+from urllib.parse import unquote
+from Crypto.Cipher import ARC4
+from urllib.parse import quote
 from base.spider import Spider
-import sys
-import json
-import base64
+from bs4 import BeautifulSoup
+import urllib.request
 import urllib.parse
+import binascii
+import requests
+import base64
+import json
+import time
+import sys
+import re
+import os
 
 sys.path.append('..')
 
-xurl = "http://www.45b7.com"
+xurl = "https://jigeyi.pro"
 
 headerx = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.87 Safari/537.36'
@@ -106,16 +111,14 @@ class Spider(Spider):
 
     def homeContent(self, filter):
         result = {}
-        result = {"class": [{"type_id": "51", "type_name": "有声动漫🌠"},
-                            {"type_id": "52", "type_name": "女频恋爱🌠"},
-                            {"type_id": "53", "type_name": "反转爽剧🌠"},
-                            {"type_id": "54", "type_name": "古装仙侠🌠"},
-                            {"type_id": "55", "type_name": "年代穿越🌠"},
-                            {"type_id": "56", "type_name": "脑洞悬疑🌠"},
-                            {"type_id": "57", "type_name": "现代都市🌠"}],
+        result = {"class": [{"type_id": "1", "type_name": "集多电影🌠"},
+                            {"type_id": "2", "type_name": "集多剧集🌠"},
+                            {"type_id": "3", "type_name": "集多综艺🌠"},
+                            {"type_id": "4", "type_name": "集多动漫🌠"},
+                            {"type_id": "5", "type_name": "集多短剧🌠"}],
 
                   "list": [],
-                  "filters": {"51": [{"key": "年代",
+                  "filters": {"1": [{"key": "年代",
                                      "name": "年代",
                                      "value": [{"n": "全部", "v": ""},
                                                {"n": "2024", "v": "2024"},
@@ -125,7 +128,7 @@ class Spider(Spider):
                                                {"n": "2020", "v": "2020"},
                                                {"n": "2019", "v": "2019"},
                                                {"n": "2018", "v": "2018"}]}],
-                              "52": [{"key": "年代",
+                              "2": [{"key": "年代",
                                      "name": "年代",
                                      "value": [{"n": "全部", "v": ""},
                                                {"n": "2024", "v": "2024"},
@@ -135,7 +138,7 @@ class Spider(Spider):
                                                {"n": "2020", "v": "2020"},
                                                {"n": "2019", "v": "2019"},
                                                {"n": "2018", "v": "2018"}]}],
-                              "53": [{"key": "年代",
+                              "3": [{"key": "年代",
                                      "name": "年代",
                                      "value": [{"n": "全部", "v": ""},
                                                {"n": "2024", "v": "2024"},
@@ -145,7 +148,7 @@ class Spider(Spider):
                                                {"n": "2020", "v": "2020"},
                                                {"n": "2019", "v": "2019"},
                                                {"n": "2018", "v": "2018"}]}],
-                              "54": [{"key": "年代",
+                              "5": [{"key": "年代",
                                      "name": "年代",
                                      "value": [{"n": "全部", "v": ""},
                                                {"n": "2024", "v": "2024"},
@@ -155,27 +158,7 @@ class Spider(Spider):
                                                {"n": "2020", "v": "2020"},
                                                {"n": "2019", "v": "2019"},
                                                {"n": "2018", "v": "2018"}]}],
-                              "55": [{"key": "年代",
-                                     "name": "年代",
-                                     "value": [{"n": "全部", "v": ""},
-                                               {"n": "2024", "v": "2024"},
-                                               {"n": "2023", "v": "2023"},
-                                               {"n": "2022", "v": "2022"},
-                                               {"n": "2021", "v": "2021"},
-                                               {"n": "2020", "v": "2020"},
-                                               {"n": "2019", "v": "2019"},
-                                               {"n": "2018", "v": "2018"}]}],
-                              "56": [{"key": "年代",
-                                     "name": "年代",
-                                     "value": [{"n": "全部", "v": ""},
-                                               {"n": "2024", "v": "2024"},
-                                               {"n": "2023", "v": "2023"},
-                                               {"n": "2022", "v": "2022"},
-                                               {"n": "2021", "v": "2021"},
-                                               {"n": "2020", "v": "2020"},
-                                               {"n": "2019", "v": "2019"},
-                                               {"n": "2018", "v": "2018"}]}],
-                              "57": [{"key": "年代",
+                              "4": [{"key": "年代",
                                      "name": "年代",
                                      "value": [{"n": "全部", "v": ""},
                                                {"n": "2024", "v": "2024"},
@@ -190,20 +173,22 @@ class Spider(Spider):
 
     def homeVideoContent(self):
         videos = []
+
         try:
-            detail = requests.get(url=xurl + "/vodtype/49.html", headers=headerx)
+            detail = requests.get(url=xurl, headers=headerx)
             detail.encoding = "utf-8"
             res = detail.text
+
             doc = BeautifulSoup(res, "lxml")
 
-            soups = doc.find_all('div', class_="module-poster-items-base")
+            soups = doc.find_all('div', class_="module-items module-poster-items-base")[1:]
 
             for soup in soups:
                 vods = soup.find_all('a')
 
                 for vod in vods:
-
-                    name = vod.find('img')['alt']
+                    names = vod.find('div', class_="module-poster-item-title")
+                    name = names.text.strip()
 
                     id = vod['href']
 
@@ -219,8 +204,8 @@ class Spider(Spider):
                         "vod_id": id,
                         "vod_name": name,
                         "vod_pic": pic,
-                        "vod_remarks": '集多推荐📽️' + remark
-                            }
+                        "vod_remarks": '集多▶️' + remark
+                    }
                     videos.append(video)
 
             result = {'list': videos}
@@ -254,32 +239,29 @@ class Spider(Spider):
             res = detail.text
             doc = BeautifulSoup(res, "lxml")
 
-            soups = doc.find_all('div', class_="module-poster-items-base")
+            vods = doc.find_all('a', class_="module-poster-item module-item")
 
-            for soup in soups:
-                vods = soup.find_all('a')
+            for vod in vods:
+                names = vod.find('div', class_="module-poster-item-title")
+                name = names.text.strip()
 
-                for vod in vods:
+                id = vod['href']
 
-                    name = vod.find('img')['alt']
+                pic = vod.find('img')['data-original']
 
-                    id = vod['href']
+                if 'http' not in pic:
+                    pic = xurl + pic
 
-                    pic = vod.find('img')['data-original']
+                remarks = vod.find('div', class_="module-item-note")
+                remark = remarks.text.strip()
 
-                    if 'http' not in pic:
-                        pic = xurl + pic
-
-                    remarks = vod.find('div', class_="module-item-note")
-                    remark = remarks.text.strip()
-
-                    video = {
-                        "vod_id": id,
-                        "vod_name": name,
-                        "vod_pic": pic,
-                        "vod_remarks": '集多推荐📽️' + remark
-                            }
-                    videos.append(video)
+                video = {
+                    "vod_id": id,
+                    "vod_name": name,
+                    "vod_pic": pic,
+                    "vod_remarks": '集多▶️' + remark
+                }
+                videos.append(video)
 
         except:
             pass
@@ -295,9 +277,10 @@ class Spider(Spider):
         did = ids[0]
         result = {}
         videos = []
-        playurl = ''
+
         if 'http' not in did:
             did = xurl + did
+
         res1 = requests.get(url=did, headers=headerx)
         res1.encoding = "utf-8"
         res = res1.text
@@ -309,19 +292,22 @@ class Spider(Spider):
         name = self.extract_middle_text(code, "s1='", "'", 0)
         Jumps = self.extract_middle_text(code, "s2='", "'", 0)
 
-        content = '集多🎉为您介绍剧情📢本资源来源于网络🚓侵权请联系删除👉' + self.extract_middle_text(res,'<h1>','</h1>', 0)
+        content = '😸集多🎉为您介绍剧情📢本资源来源于网络🚓侵权请联系删除👉' + self.extract_middle_text(res,'style="line-height: 20px;">','</p>', 0)
+        content = content.replace('\r', '').replace('\n', '').replace('<p>', '')
 
         if name not in content:
             bofang = Jumps
         else:
-            bofang = self.extract_middle_text(res, 'module-play-list-base">', '</div>', 3,'href="(.*?)" title=".*?"><span>(.*?)</span>')
+            bofang = self.extract_middle_text(res, '<div class="module-play-list-content', '</div>', 3,'href="(.*?)" title=".*?"><span>(.*?)</span></a>')
+
+        xianlu = self.extract_middle_text(res, '<div class="module-tab-items-box', '<div class="shortcuts-mobile-overlay">', 2,'data-dropdown-value=".*?"><span>(.*?)</span>')
 
         videos.append({
             "vod_id": did,
-            "vod_actor": '😸集多和他的兄弟们',
-            "vod_director": '😸集多',
+            "vod_actor": '集多和他的朋友们',
+            "vod_director": '集多',
             "vod_content": content,
-            "vod_play_from": '😸集多专线',
+            "vod_play_from": xianlu,
             "vod_play_url": bofang
         })
 
@@ -330,57 +316,61 @@ class Spider(Spider):
 
     def playerContent(self, flag, id, vipFlags):
         parts = id.split("http")
-        xiutan = 0
-        if xiutan == 0:
+
+        xiutan = 1
+
+        if xiutan == 1:
             if len(parts) > 1:
                 before_https, after_https = parts[0], 'http' + parts[1]
-            if '/tp/jd.m3u8' in after_https:
-                url = after_https
-            else:
-                res = requests.get(url=after_https, headers=headerx)
-                res = res.text
-
-                url = self.extract_middle_text(res, '"","url":"', '"', 0).replace('\\', '')
-
             result = {}
             result["parse"] = xiutan
             result["playUrl"] = ''
-            result["url"] = url
+            result["url"] = after_https
             result["header"] = headerx
             return result
-
     def searchContentPage(self, key, quick, page):
         result = {}
         videos = []
+
         if not page:
             page = '1'
         if page == '1':
-            url = f'{xurl}/index.php/ajax/suggest?mid=1&wd={key}&page=1&limit=30'
+            url = f'{xurl}/vodsearch/-------------.html?wd={key}'
 
         else:
-            url = f'{xurl}/index.php/ajax/suggest?mid=1&wd={key}&page={str(page)}&limit=30'
+            url = f'{xurl}/vodsearch/{key}----------{str(page)}---.html'
 
         detail = requests.get(url=url, headers=headerx)
         detail.encoding = "utf-8"
-        if detail.status_code == 200:
-            data = detail.json()
+        res = detail.text
+        doc = BeautifulSoup(res, "lxml")
 
-            for vod in data['list']:
-                name = vod['name']
+        soups = doc.find_all('div', class_="module-items")
 
-                id = vod['id']
-                id = f"{xurl}/voddetail/{vod['id']}.html"
+        for soup in soups:
+            vods = soup.find_all('div', class_="module-card-item")
 
-                pic = vod['pic']
+            for vod in vods:
 
-                remark = vod['en']
+                name = vod.find('img')['alt']
+
+                ids = vod.find('div', class_="module-card-item-title")
+                id = ids.find('a')['href']
+
+                pic = vod.find('img')['data-original']
+
+                if 'http' not in pic:
+                    pic = xurl + pic
+
+                remarks = vod.find('div', class_="module-item-note")
+                remark = remarks.text.strip()
 
                 video = {
                     "vod_id": id,
-                    "vod_name": '丢丢📽️' + name,
+                    "vod_name": name,
                     "vod_pic": pic,
-                    "vod_remarks": '丢丢▶️' + remark
-                        }
+                    "vod_remarks": '集多▶️' + remark
+                }
                 videos.append(video)
 
         result['list'] = videos
@@ -401,6 +391,7 @@ class Spider(Spider):
         elif params['type'] == "ts":
             return self.proxyTs(params)
         return None
+
 
 
 
