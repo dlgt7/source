@@ -1,6 +1,6 @@
 # coding=utf-8
 # !/usr/bin/python
-# by嗷呜
+# by酷云
 
 import sys
 sys.path.append("..")
